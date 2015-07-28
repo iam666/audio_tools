@@ -3,6 +3,7 @@
 
 """ cue tools library """
 
+import time
 from binascii import hexlify
 from hashlib import sha256 as hash_func
 import chardet
@@ -219,7 +220,7 @@ class Cue(object):
                 prefix = BOM_UTF16LE
             else:
                 prefix = ''
-                #
+            #
         #
 
         # REMs
@@ -750,6 +751,30 @@ def cue_parse(data, encoding="cp1251"):
     cue.tracks = [cue_parse_track(cue, _) for _ in tracks]
 
     return cue
+#
+
+
+def cue_maker(**argv):
+    """ make .cue
+
+        :param argv:
+        :return:
+    """
+
+    genre = "REM GENRE %s" % argv.get("genre", "Unknown")
+    date = "REM DATE %s" % argv.get("date", time.strftime("%Y"))
+    performer = "PERFORMER %s" % argv.get("performer", "Unknown")
+    title = "TITLE %s" % argv.get("title", "Unknown")
+    file_image = 'FILE "%s" WAVE' % argv.get("file", "unknown.wav")
+
+    trk_pattern = '  TRACK %02d AUDIO\n    TITLE "%s"\n INDEX 01 %s'
+    trk_enum = enumerate(argv.get("tracks", [("Unknown", "00:00:00")]), 1)
+    tracks = [trk_pattern % (trk_id, trk[0], trk[1]) for trk_id, trk in trk_enum]
+
+    data = [genre, date, performer, title, file_image]
+    data.extend(tracks)
+
+    return "\n".join(data)
 #
 
 

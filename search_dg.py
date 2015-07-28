@@ -1326,11 +1326,6 @@ def cue_tagger(releases, name, skip=0):
         :return: return Cue() and save new cue as "name.<DISCOGS_ID>.ext"
     """
 
-    if not os.path.isfile(name):
-        logger("error: can't find {%r}" % name)
-        return None
-    #
-
     if skip < 0:
         cue_skip = abs(skip)
     else:
@@ -1353,8 +1348,16 @@ def cue_tagger(releases, name, skip=0):
     r_info = r_dump[0]
     r_id, r_artists, r_title, r_year, r_formats, r_labels, r_genres = r_info
 
-    with open(name, "rb") as f:
-        data = f.read()
+    if not os.path.isfile(name):
+        logger("warning: can't find {%r}" % name)
+
+        r_tracks = get_tracks(r, duration=False)
+        tracks = [(get_track_title(r_track, "")[0], "00:00:00") for r_track in r_tracks]
+        data = cuelib.cue_maker(tracks=tracks)
+    else:
+        with open(name, "rb") as f:
+            data = f.read()
+        #
     #
     cue = cuelib.cue_parse(data)
 
